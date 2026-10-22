@@ -1,0 +1,100 @@
+[ssh]
+# 每一跳建立 TCP 连接并完成 SSH 握手的超时，范围 1-600 秒。
+connect_timeout_seconds = 15
+
+# keepalive 请求间隔，范围 0-3600 秒；设为 0 可关闭 keepalive。
+keepalive_interval_seconds = 30
+
+# 等待单次 keepalive 响应的超时，范围 1-120 秒。
+keepalive_timeout_seconds = 10
+
+[ssh.proxy]
+# 可选出站代理类型：none、http（HTTP CONNECT）、socks4 或 socks5。
+type = "none"
+# 设置为 http / socks4 / socks5 时必填，例如 127.0.0.1:1080 或 [::1]:1080。
+address = ""
+# SOCKS4 将 username 作为 user ID 发送，不支持密码；HTTP/SOCKS5 的用户名需与 password_env 配对。
+username = ""
+# HTTP/SOCKS5 代理密码通过指定环境变量读取，不写入此文件；SOCKS4 留空。
+password_env = ""
+
+[logging]
+# 单个日志分段的最大字节数，范围 1024 到 104857600；达到后自动轮转。
+segment_bytes = 104857600
+
+# 每次录制保留的分段总数，包含当前分段，范围 1 到 100。
+retained_segments = 5
+
+# 所有终端日志合计允许占用的空间；超出时优先删除最旧的非活动日志。
+# 设为 0 可关闭总容量限制。有效范围为 0 到 107374182400（100 GiB）。
+max_total_bytes = 1073741824
+
+# 日志最长保留天数；超期日志会在创建日志、录制期间每分钟及关闭时清理。
+# 设为 0 可关闭按时间清理。有效范围为 0 到 3650 天。
+max_age_days = 90
+
+# 对输出文本应用 Go RE2 正则脱敏；匹配替换为 [REDACTED]。
+# 为保证流式处理有界，规则需要有限重复（例如 {1,256}），不支持锚点和无限重复。
+redact_patterns = []
+
+[notifications]
+# 设置为 true 时，文件传输完成会尝试发送桌面系统通知；默认关闭。
+enabled = false
+
+[terminal]
+# 收到远端 BEL 时显示短暂的 TUI 状态提示；可设为 visual 或 off。
+bell = "visual"
+# 终端列数与行数；0 表示跟随 pane 尺寸。固定尺寸可为远端 TUI 提供稳定布局。
+columns = 0
+rows = 0
+
+# 终端输出高亮：每条规则只匹配单行的可见文本；最多 32 条，pattern 使用 Go RE2 正则。
+[[terminal.highlights]]
+name = "errors"
+pattern = '\b(error|failed|fatal)\b'
+ignore_case = true
+foreground = "#FFFFFF"
+background = "#7F1D1D"
+bold = true
+
+[[terminal.highlights]]
+name = "warnings"
+pattern = '\b(warn|warning)\b'
+ignore_case = true
+foreground = "#FFD166"
+bold = true
+
+[appearance]
+# 内置配色：default、nord、dracula、solarized-dark、high-contrast、catppuccin-mocha、tokyo-night、gruvbox-dark、one-dark。
+scheme = "default"
+
+[appearance.colors]
+# 可选的单项颜色覆盖，格式为 #RRGGBB；未填写的颜色沿用所选配色。
+# accent = "#58D6C2"
+# canvas = "#10151B"
+
+[workspace]
+# 会话工作区快捷键前缀，只支持 Ctrl 加一个英文字母；会与终端控制或内置快捷键冲突的组合会拒绝。
+leader = "ctrl+g"
+# 启动时自动恢复并重新连接上次退出时的工作区；启用后优先于默认会话。
+restore_last_on_startup = false
+# 是否显示 SSH 工作区底部的常驻快捷键提示；关闭后仍显示会话与流量等状态信息。
+show_footer_shortcuts = true
+# 状态栏快捷提示的显示顺序；删除某项可隐藏，设为空数组可隐藏所有默认提示。
+status_bar_items = ["leader", "session", "traffic", "split", "command_history", "quick_command", "scheduled_transfers", "sftp", "help", "close_pane"]
+
+[workspace.bindings]
+# 只需填写要修改的动作；未列出的动作使用默认键位，设为空字符串可禁用该动作。
+# screen_left = "["
+# screen_right = "]"
+# screen_up = "{"
+# screen_down = "}"
+# pane_grow = "."
+# pane_shrink = ","
+# pane_move_next = "ctrl+e"
+# split_vertical = "j"
+# quick_command = "k"
+# clear_screen = "u"
+# command_history = "y"
+# send_ascii_file = "ctrl+f"
+# xymodem = "!"

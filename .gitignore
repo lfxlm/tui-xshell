@@ -1,0 +1,14 @@
+.idea/
+.vscode/
+.DS_Store
+/bin/
+/dist/
+/tui-ssh-workbench
+/workbench.db
+/workbench.db-shm
+/workbench.db-wal
+*.exe
+*.log
+.env
+# Local screenshot contains a personal desktop and is not a project asset.
+/0004.png
