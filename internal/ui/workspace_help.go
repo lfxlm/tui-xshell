@@ -65,7 +65,7 @@ func (m modelState) workspaceHelpView() string {
 	}
 	lines = append(lines,
 		separatorStyle.Render(strings.Repeat("─", width)),
-		"拖动 pane 标题到另一个 pane 可交换位置 · 拖动分隔线调整大小 · 鼠标双击选词 · Shift 拖动选择文本 · "+terminalClipboardCopyShortcutLabel()+" 复制 · "+terminalClipboardPasteShortcutLabel()+" 粘贴 · Ctrl+] 关闭 pane",
+		"拖动 pane 标题栏；目标高亮后松开即可交换 · 拖动分隔线调整大小 · 鼠标双击选词 · Shift 拖动选择文本 · "+terminalClipboardCopyShortcutLabel()+" 复制 · "+terminalClipboardPasteShortcutLabel()+" 粘贴 · Ctrl+] 关闭 pane",
 		mutedStyle.Render("↑/↓ 滚动 · PgUp/PgDn 翻页 · Esc 或 ? 关闭帮助"),
 	)
 	for index := range lines {

@@ -32,6 +32,7 @@ type paneMoveDragState struct {
 	tabID        string
 	root         *paneNode
 	sourcePaneID string
+	targetPaneID string
 	startX       int
 	startY       int
 	dragging     bool
@@ -309,6 +310,15 @@ func (m *modelState) updateWorkspaceMouse(msg tea.MouseMsg) tea.Cmd {
 			}
 			if mouse.X != drag.startX || mouse.Y != drag.startY {
 				drag.dragging = true
+			}
+			if drag.dragging {
+				rootRect := paneRect{width: m.width, height: max(1, m.height-2)}
+				targetPane, _ := paneAt(tab.root, rootRect, mouse.X, mouse.Y-1)
+				if targetPane != nil && targetPane.id != drag.sourcePaneID {
+					drag.targetPaneID = targetPane.id
+				} else {
+					drag.targetPaneID = ""
+				}
 			}
 			return nil
 		case tea.MouseClickMsg, tea.MouseWheelMsg:

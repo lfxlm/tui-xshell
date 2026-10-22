@@ -579,6 +579,18 @@ func (m modelState) renderTerminalPaneWithEdges(pane *terminalPane, rect paneRec
 		focused = true
 		header = focusBadgeStyle.Background(palette.selected).Width(contentRect.width).Render(fitText("▶ "+title, contentRect.width))
 	}
+	dropTarget := false
+	if drag := m.paneMoveDrag; drag != nil && drag.dragging {
+		switch pane.id {
+		case drag.targetPaneID:
+			dropTarget = true
+			header = lipgloss.NewStyle().Foreground(palette.canvas).Background(palette.success).Bold(true).Width(contentRect.width).
+				Render(fitText("⇄ 放到这里 · "+title, contentRect.width))
+		case drag.sourcePaneID:
+			header = lipgloss.NewStyle().Foreground(palette.canvas).Background(palette.warning).Bold(true).Width(contentRect.width).
+				Render(fitText("↕ 正在移动 · "+title, contentRect.width))
+		}
+	}
 	rows := []string{fitLine(header, contentRect.width)}
 	bodyHeight := max(0, contentRect.height-1)
 	if pane.session == nil || pane.terminal == nil {
@@ -593,7 +605,7 @@ func (m modelState) renderTerminalPaneWithEdges(pane *terminalPane, rect paneRec
 			}
 			rows = append(rows, fitLine(line, contentRect.width))
 		}
-		return frameTerminalPaneWithEdges(strings.Join(rows, "\n"), rect, focused, edges)
+		return frameTerminalPaneWithDropTarget(strings.Join(rows, "\n"), rect, focused, edges, dropTarget)
 	}
 	terminalRows := renderTerminalRowsWithLinks(pane)
 	if pane.selection != nil {
@@ -624,7 +636,7 @@ func (m modelState) renderTerminalPaneWithEdges(pane *terminalPane, rect paneRec
 		line = fitLine(line, contentRect.width)
 		rows = append(rows, line)
 	}
-	return frameTerminalPaneWithEdges(strings.Join(rows, "\n"), rect, focused, edges)
+	return frameTerminalPaneWithDropTarget(strings.Join(rows, "\n"), rect, focused, edges, dropTarget)
 }
 
 func frameTerminalPane(content string, rect paneRect, focused bool) string {
@@ -632,6 +644,10 @@ func frameTerminalPane(content string, rect paneRect, focused bool) string {
 }
 
 func frameTerminalPaneWithEdges(content string, rect paneRect, focused bool, edges paneFrameEdges) string {
+	return frameTerminalPaneWithDropTarget(content, rect, focused, edges, false)
+}
+
+func frameTerminalPaneWithDropTarget(content string, rect paneRect, focused bool, edges paneFrameEdges, dropTarget bool) string {
 	if rect.width < 3 || rect.height < 3 {
 		return joinFixedColumns(rect.height, fixedColumn{content: content, width: rect.width})
 	}
@@ -642,6 +658,9 @@ func frameTerminalPaneWithEdges(content string, rect paneRect, focused bool, edg
 	borderColor := palette.line
 	if focused {
 		borderColor = lipgloss.Color("#F6C343")
+	}
+	if dropTarget {
+		borderColor = palette.success
 	}
 	borderStyle := lipgloss.NewStyle().Foreground(borderColor)
 	leftWidth, rightWidth := edgeCell(edges.left), edgeCell(edges.right)
@@ -1639,7 +1658,14 @@ func (m modelState) workspaceTabAt(x int) int {
 
 func (m modelState) workspaceFooter(width int) string {
 	if drag := m.paneMoveDrag; drag != nil && drag.dragging {
-		return fitLine(accentStyle.Render("移动 pane · 拖到另一个 pane 后释放以交换位置 · Esc 取消"), width)
+		if tab := m.tabByID(drag.tabID); tab != nil {
+			if target := findPane(tab.root, drag.targetPaneID); target != nil {
+				targetStyle := lipgloss.NewStyle().Foreground(palette.canvas).Background(palette.success).Bold(true)
+				return fitLine(targetStyle.Render(" ⇄ 放到 "+sanitizeRemoteText(target.host.Name)+" ")+" "+mutedStyle.Render("松开交换 · Esc 取消"), width)
+			}
+		}
+		invalidStyle := lipgloss.NewStyle().Foreground(palette.canvas).Background(palette.warning).Bold(true)
+		return fitLine(invalidStyle.Render(" × 无效落点 ")+" "+mutedStyle.Render("拖到另一个 pane · Esc 取消"), width)
 	}
 	if pane := m.activeTerminalPane(); pane != nil && pane.bellUntil.After(time.Now()) {
 		return fitLine(warningStyle.Render("终端响铃 · "+sanitizeRemoteText(pane.host.Name)), width)
